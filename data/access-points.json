@@ -2,31 +2,73 @@
   "points": [
     {
       "id": 1,
-      "name": "Anleger Alsterpark",
+      "name": "Slipanlage Heilwigstraße (Eichenpark)",
       "type": "launch",
-      "lat": 53.5665,
-      "lng": 9.9950
+      "lat": 53.5837,
+      "lng": 9.9877
     },
     {
       "id": 2,
-      "name": "Kennedybruecke Slip",
+      "name": "Steganlage Alstervorland (Harvestehuder Weg)",
       "type": "launch",
-      "lat": 53.5590,
-      "lng": 9.9940
+      "lat": 53.5765,
+      "lng": 9.9930
     },
     {
       "id": 3,
-      "name": "Fernsicht Ausstieg",
-      "type": "exit",
-      "lat": 53.5710,
-      "lng": 9.9910
+      "name": "Isebekkanal - Hegestieg",
+      "type": "launch",
+      "lat": 53.5768,
+      "lng": 9.9748
     },
     {
       "id": 4,
-      "name": "Isebekkanal Anlegestelle",
+      "name": "Isebekkanal nahe Mansteinbrücke",
       "type": "mooring",
-      "lat": 53.5700,
-      "lng": 9.9780
+      "lat": 53.5757,
+      "lng": 9.9701
+    },
+    {
+      "id": 5,
+      "name": "Goldbekkanal - Stadthallenbrücke",
+      "type": "mooring",
+      "lat": 53.5917,
+      "lng": 10.0315
+    },
+    {
+      "id": 6,
+      "name": "Stadtparksee - Steganlage Festwiese",
+      "type": "exit",
+      "lat": 53.5940,
+      "lng": 10.0330
+    },
+    {
+      "id": 7,
+      "name": "Eilbekkanal - Wagnerstraßenbrücke",
+      "type": "exit",
+      "lat": 53.5680,
+      "lng": 10.0270
+    },
+    {
+      "id": 8,
+      "name": "Barmbeker Stichkanal - Alter Güterbahnhof",
+      "type": "mooring",
+      "lat": 53.5870,
+      "lng": 10.0270
+    },
+    {
+      "id": 9,
+      "name": "Osterbekkanal - Geibelstraße",
+      "type": "exit",
+      "lat": 53.5820,
+      "lng": 10.0280
+    },
+    {
+      "id": 10,
+      "name": "Anleger Ballindamm (Binnenalster)",
+      "type": "mooring",
+      "lat": 53.5540,
+      "lng": 9.9935
     }
   ]
 }
