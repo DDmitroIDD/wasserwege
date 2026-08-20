@@ -7,6 +7,9 @@ const iconColors = {
   mooring: 'blue'
 };
 
+let pointsLayer = null;
+let cachedData = null;
+
 function createIcon(type) {
   const color = iconColors[type] || 'gray';
   return L.divIcon({
@@ -16,16 +19,29 @@ function createIcon(type) {
   });
 }
 
+function renderPoints(map, data) {
+  if (pointsLayer) {
+    map.removeLayer(pointsLayer);
+  }
+
+  pointsLayer = L.layerGroup();
+
+  data.points.forEach((point) => {
+    L.marker([point.lat, point.lng], { icon: createIcon(point.type) })
+      .bindPopup(`<b>${point.name}</b><br>${t(point.type)}`)
+      .addTo(pointsLayer);
+  });
+
+  pointsLayer.addTo(map);
+}
+
 export async function loadAccessPoints(map) {
   try {
-    const response = await fetch('data/access-points.json');
-    const data = await response.json();
-
-    data.points.forEach((point) => {
-      L.marker([point.lat, point.lng], { icon: createIcon(point.type) })
-        .addTo(map)
-        .bindPopup(`<b>${point.name}</b><br>${t(point.type)}`);
-    });
+    if (!cachedData) {
+      const response = await fetch('data/access-points.json');
+      cachedData = await response.json();
+    }
+    renderPoints(map, cachedData);
   } catch (err) {
     console.error('Failed to load access points:', err);
   }
