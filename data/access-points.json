@@ -1,0 +1,32 @@
+{
+  "points": [
+    {
+      "id": 1,
+      "name": "Anleger Alsterpark",
+      "type": "launch",
+      "lat": 53.5665,
+      "lng": 9.9950
+    },
+    {
+      "id": 2,
+      "name": "Kennedybruecke Slip",
+      "type": "launch",
+      "lat": 53.5590,
+      "lng": 9.9940
+    },
+    {
+      "id": 3,
+      "name": "Fernsicht Ausstieg",
+      "type": "exit",
+      "lat": 53.5710,
+      "lng": 9.9910
+    },
+    {
+      "id": 4,
+      "name": "Isebekkanal Anlegestelle",
+      "type": "mooring",
+      "lat": 53.5700,
+      "lng": 9.9780
+    }
+  ]
+}
