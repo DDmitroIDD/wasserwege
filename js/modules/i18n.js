@@ -4,25 +4,41 @@ const translations = {
     locate: 'Моё местоположение',
     launch: 'Спуск на воду',
     exit: 'Выход с воды',
-    mooring: 'Швартовка'
+    mooring: 'Швартовка',
+    legend: 'Легенда',
+    navigable: 'Судоходно',
+    nonNavigable: 'Несудоходно',
+    toggleNonNavigable: 'Показать несудоходные'
   },
   uk: {
     locate: 'Моє місцезнаходження',
     launch: 'Спуск на воду',
     exit: 'Вихід з води',
-    mooring: 'Швартування'
+    mooring: 'Швартування',
+    legend: 'Легенда',
+    navigable: 'Судноплавно',
+    nonNavigable: 'Не судноплавно',
+    toggleNonNavigable: 'Показати не судноплавні'
   },
   de: {
     locate: 'Mein Standort',
     launch: 'Einstieg',
     exit: 'Ausstieg',
-    mooring: 'Anlegestelle'
+    mooring: 'Anlegestelle',
+    legend: 'Legende',
+    navigable: 'Befahrbar',
+    nonNavigable: 'Nicht befahrbar',
+    toggleNonNavigable: 'Nicht befahrbare anzeigen'
   },
   en: {
     locate: 'My location',
     launch: 'Launch point',
     exit: 'Exit point',
-    mooring: 'Mooring'
+    mooring: 'Mooring',
+    legend: 'Legend',
+    navigable: 'Navigable',
+    nonNavigable: 'Non-navigable',
+    toggleNonNavigable: 'Show non-navigable'
   }
 };
 
@@ -48,4 +64,8 @@ export function initI18n(selectEl) {
 function applyTranslations() {
   const locateBtn = document.getElementById('locate-btn');
   if (locateBtn) locateBtn.textContent = t('locate');
+
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
 }
