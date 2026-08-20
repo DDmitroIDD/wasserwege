@@ -41,6 +41,7 @@ export function initI18n(selectEl) {
   selectEl.addEventListener('change', (e) => {
     currentLang = e.target.value;
     applyTranslations();
+    window.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: currentLang } }));
   });
 }
 
