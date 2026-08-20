@@ -1,0 +1,168 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-08-20T13:57:06Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/24062266",
+        "boat": "yes",
+        "name": "Barmbeker Stichkanal",
+        "waterway": "canal",
+        "wikipedia": "de:Barmbeker Stichkanal"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            10.0358751,
+            53.5850072
+          ],
+          [
+            10.0355775,
+            53.5873786
+          ],
+          [
+            10.0355327,
+            53.5875005
+          ],
+          [
+            10.0354041,
+            53.5877129
+          ],
+          [
+            10.0353196,
+            53.5878554
+          ]
+        ]
+      },
+      "id": "way/24062266"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/244597018",
+        "boat": "yes",
+        "name": "Barmbeker Stichkanal",
+        "waterway": "canal",
+        "wikipedia": "de:Barmbeker Stichkanal"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            10.0340059,
+            53.5909314
+          ],
+          [
+            10.0336576,
+            53.5926337
+          ],
+          [
+            10.0336021,
+            53.5927675
+          ],
+          [
+            10.0335243,
+            53.5928439
+          ],
+          [
+            10.0334738,
+            53.5928666
+          ],
+          [
+            10.0334144,
+            53.5928932
+          ],
+          [
+            10.0332856,
+            53.5929283
+          ],
+          [
+            10.0331191,
+            53.5929423
+          ],
+          [
+            10.0329503,
+            53.5929346
+          ],
+          [
+            10.0327063,
+            53.5928917
+          ],
+          [
+            10.0325936,
+            53.5928566
+          ],
+          [
+            10.0323549,
+            53.5927662
+          ]
+        ]
+      },
+      "id": "way/244597018"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/789177079",
+        "boat": "yes",
+        "name": "Barmbeker Stichkanal",
+        "waterway": "canal",
+        "wikipedia": "de:Barmbeker Stichkanal"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            10.0343194,
+            53.5886825
+          ],
+          [
+            10.0342716,
+            53.5888683
+          ],
+          [
+            10.0340084,
+            53.5909098
+          ],
+          [
+            10.0340059,
+            53.5909314
+          ]
+        ]
+      },
+      "id": "way/789177079"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/789177080",
+        "boat": "yes",
+        "name": "Barmbeker Stichkanal",
+        "waterway": "canal",
+        "wikipedia": "de:Barmbeker Stichkanal"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            10.0353196,
+            53.5878554
+          ],
+          [
+            10.0352164,
+            53.58797
+          ],
+          [
+            10.0343194,
+            53.5886825
+          ]
+        ]
+      },
+      "id": "way/789177080"
+    }
+  ]
+}
