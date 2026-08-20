@@ -1,0 +1,30 @@
+// Access points module: loads and renders launch/exit/mooring points
+const iconColors = {
+  launch: 'green',
+  exit: 'orange',
+  mooring: 'blue'
+};
+
+function createIcon(type) {
+  const color = iconColors[type] || 'gray';
+  return L.divIcon({
+    className: 'access-point-icon',
+    html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [14, 14]
+  });
+}
+
+export async function loadAccessPoints(map) {
+  try {
+    const response = await fetch('data/access-points.json');
+    const data = await response.json();
+
+    data.points.forEach((point) => {
+      L.marker([point.lat, point.lng], { icon: createIcon(point.type) })
+        .addTo(map)
+        .bindPopup(`<b>${point.name}</b><br>${point.type}`);
+    });
+  } catch (err) {
+    console.error('Failed to load access points:', err);
+  }
+}
