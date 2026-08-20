@@ -1,5 +1,8 @@
 // Waterways module: loads and renders kayak-navigable canal/river polylines from OSM data
-async function loadWaterwaySource(map, url) {
+let navigableLayer = null;
+let nonNavigableLayer = null;
+
+async function loadWaterwaySource(url) {
   const response = await fetch(url);
   const data = await response.json();
 
@@ -12,27 +15,42 @@ async function loadWaterwaySource(map, url) {
 
     const coords = feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
 
-    L.polyline(coords, {
+    const line = L.polyline(coords, {
       color: boatAllowed ? '#0077b6' : '#999999',
       weight: boatAllowed ? 4 : 2,
       opacity: boatAllowed ? 0.8 : 0.4,
       dashArray: boatAllowed ? null : '4 4'
-    })
-      .addTo(map)
-      .bindPopup(name);
+    }).bindPopup(name);
+
+    if (boatAllowed) {
+      navigableLayer.addLayer(line);
+    } else {
+      nonNavigableLayer.addLayer(line);
+    }
   });
 }
 
 export async function loadWaterways(map) {
+  navigableLayer = L.layerGroup().addTo(map);
+  nonNavigableLayer = L.layerGroup().addTo(map);
+
   try {
-    await loadWaterwaySource(map, 'data/waterways-raw-osm.json');
+    await loadWaterwaySource('data/waterways-raw-osm.json');
   } catch (err) {
     console.error('Failed to load waterways:', err);
   }
-
   try {
-    await loadWaterwaySource(map, 'data/waterways-extra.json');
+    await loadWaterwaySource('data/waterways-extra.json');
   } catch (err) {
     console.error('Failed to load extra waterways:', err);
+  }
+}
+
+export function setNonNavigableVisible(map, visible) {
+  if (!nonNavigableLayer) return;
+  if (visible) {
+    if (!map.hasLayer(nonNavigableLayer)) map.addLayer(nonNavigableLayer);
+  } else {
+    if (map.hasLayer(nonNavigableLayer)) map.removeLayer(nonNavigableLayer);
   }
 }
