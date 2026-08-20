@@ -1,4 +1,6 @@
 // Access points module: loads and renders launch/exit/mooring points
+import { t } from './i18n.js';
+
 const iconColors = {
   launch: 'green',
   exit: 'orange',
@@ -22,7 +24,7 @@ export async function loadAccessPoints(map) {
     data.points.forEach((point) => {
       L.marker([point.lat, point.lng], { icon: createIcon(point.type) })
         .addTo(map)
-        .bindPopup(`<b>${point.name}</b><br>${point.type}`);
+        .bindPopup(`<b>${point.name}</b><br>${t(point.type)}`);
     });
   } catch (err) {
     console.error('Failed to load access points:', err);
