@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Binnenalster", "kayak_allowed": true },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [9.9937, 53.5560],
+          [9.9950, 53.5545],
+          [9.9970, 53.5530]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Isebekkanal", "kayak_allowed": true },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [9.9700, 53.5720],
+          [9.9780, 53.5700],
+          [9.9850, 53.5680]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eilbekkanal", "kayak_allowed": true },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [10.0300, 53.5650],
+          [10.0400, 53.5630],
+          [10.0500, 53.5610]
+        ]
+      }
+    }
+  ]
+}
