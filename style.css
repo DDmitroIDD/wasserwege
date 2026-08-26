@@ -65,3 +65,51 @@ html, body { height: 100%; font-family: system-ui, sans-serif; }
   #controls { top: auto; bottom: 20px; left: 10px; right: 10px; justify-content: center; }
   #legend { bottom: 70px; max-width: 180px; font-size: 12px; }
 }
+
+/* Add-point modal / Модальное окно добавления точки */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+  background: white;
+  border-radius: 8px;
+  padding: 16px 20px;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.modal-box h3 { margin: 0 0 10px 0; font-size: 15px; }
+.modal-box input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modal-actions button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+#add-point-save-btn {
+  background: #0077b6;
+  color: white;
+  border-color: #0077b6;
+}
