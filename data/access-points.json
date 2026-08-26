@@ -2,73 +2,155 @@
   "points": [
     {
       "id": 1,
-      "name": "Slipanlage Heilwigstraße (Eichenpark)",
+      "name": "Binnenalster - Anleger Ballindamm",
       "type": "launch",
-      "lat": 53.5837,
-      "lng": 9.9877
+      "lat": 53.5539,
+      "lng": 9.9950,
+      "official": true
     },
     {
       "id": 2,
-      "name": "Steganlage Alstervorland (Harvestehuder Weg)",
+      "name": "Außenalster - Steganlage Alstervorland (Harvestehuder Weg)",
       "type": "launch",
       "lat": 53.5765,
-      "lng": 9.9930
+      "lng": 9.9930,
+      "official": true
     },
     {
       "id": 3,
-      "name": "Isebekkanal - Hegestieg",
+      "name": "Alsterlauf - Slipanlage Heilwigstraße (Eichenpark)",
       "type": "launch",
-      "lat": 53.5768,
-      "lng": 9.9748
+      "lat": 53.5837,
+      "lng": 9.9877,
+      "official": true
     },
     {
       "id": 4,
-      "name": "Isebekkanal nahe Mansteinbrücke",
-      "type": "mooring",
-      "lat": 53.5757,
-      "lng": 9.9701
+      "name": "Alsterlauf - Hayns Park (Alte Alster)",
+      "type": "launch",
+      "lat": 53.5952,
+      "lng": 9.9895,
+      "official": true
     },
     {
       "id": 5,
-      "name": "Goldbekkanal - Stadthallenbrücke",
-      "type": "mooring",
-      "lat": 53.5917,
-      "lng": 10.0315
+      "name": "Alsterlauf - Meenkwiese",
+      "type": "launch",
+      "lat": 53.5977,
+      "lng": 9.9904,
+      "official": true
     },
     {
       "id": 6,
-      "name": "Stadtparksee - Steganlage Festwiese",
-      "type": "exit",
-      "lat": 53.5940,
-      "lng": 10.0330
+      "name": "Alsterlauf - Alsterkrugchaussee / Alsterkrüger Kahre",
+      "type": "launch",
+      "lat": 53.6114,
+      "lng": 10.0091,
+      "official": true
     },
     {
       "id": 7,
-      "name": "Eilbekkanal - Wagnerstraßenbrücke",
-      "type": "exit",
-      "lat": 53.5680,
-      "lng": 10.0270
+      "name": "Alsterlauf - Brabandkai an der Brabandstraße",
+      "type": "launch",
+      "lat": 53.6070,
+      "lng": 10.0000,
+      "official": true
     },
     {
       "id": 8,
-      "name": "Barmbeker Stichkanal - Alter Güterbahnhof",
-      "type": "mooring",
-      "lat": 53.5870,
-      "lng": 10.0270
+      "name": "Alsterlauf - Rathenaustraße am Ringkanal",
+      "type": "launch",
+      "lat": 53.6114,
+      "lng": 10.0089,
+      "official": true
     },
     {
       "id": 9,
-      "name": "Osterbekkanal - Geibelstraße",
-      "type": "exit",
-      "lat": 53.5820,
-      "lng": 10.0280
+      "name": "Alsterlauf - Woermannsweg (südlich Fuhlsbüttler Schleuse)",
+      "type": "launch",
+      "lat": 53.6234,
+      "lng": 10.0284,
+      "official": true
     },
     {
       "id": 10,
-      "name": "Anleger Ballindamm (Binnenalster)",
+      "name": "Isebekkanal - Hegestieg",
+      "type": "launch",
+      "lat": 53.5768,
+      "lng": 9.9748,
+      "official": true
+    },
+    {
+      "id": 11,
+      "name": "Isebekkanal - Steg Südufer westlich Mansteinbrücke",
       "type": "mooring",
-      "lat": 53.5540,
-      "lng": 9.9935
+      "lat": 53.5757,
+      "lng": 9.9701,
+      "official": true
+    },
+    {
+      "id": 12,
+      "name": "Isebekkanal - Steg Nordufer im Mansteinpark",
+      "type": "mooring",
+      "lat": 53.5762,
+      "lng": 9.9705,
+      "official": true
+    },
+    {
+      "id": 13,
+      "name": "Goldbekkanal - Stadthallenbrücke",
+      "type": "mooring",
+      "lat": 53.5917,
+      "lng": 10.0315,
+      "official": true
+    },
+    {
+      "id": 14,
+      "name": "Stadtparksee - Steganlage vor der Festwiese (Kaskaden)",
+      "type": "exit",
+      "lat": 53.5940,
+      "lng": 10.0330,
+      "official": true
+    },
+    {
+      "id": 15,
+      "name": "Stadtparksee - Steganlage Nordseite",
+      "type": "exit",
+      "lat": 53.5958,
+      "lng": 10.0345,
+      "official": true
+    },
+    {
+      "id": 16,
+      "name": "Eilbekkanal - Steganlage 100m östlich Wagnerstraßenbrücke",
+      "type": "exit",
+      "lat": 53.5680,
+      "lng": 10.0287,
+      "official": true
+    },
+    {
+      "id": 17,
+      "name": "Barmbeker Stichkanal - Anleger Alter Güterbahnhof",
+      "type": "mooring",
+      "lat": 53.5875,
+      "lng": 10.0290,
+      "official": true
+    },
+    {
+      "id": 18,
+      "name": "Osterbekkanal - Geibelstraße",
+      "type": "launch",
+      "lat": 53.5819,
+      "lng": 10.0175,
+      "official": true
+    },
+    {
+      "id": 19,
+      "name": "Osterbekkanal - Steganlage Kampnagelfabrik (Hertha-Feiner-Asmus-Stieg)",
+      "type": "launch",
+      "lat": 53.5833,
+      "lng": 10.0222,
+      "official": true
     }
   ]
 }
