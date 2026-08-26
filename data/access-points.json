@@ -4,32 +4,32 @@
       "id": 1,
       "name": "Binnenalster - Anleger Ballindamm",
       "type": "point",
-      "lat": 53.5539,
-      "lng": 9.9950,
+      "lat": 53.5535,
+      "lng": 9.9968,
       "official": true
     },
     {
       "id": 2,
       "name": "Außenalster - Steganlage Alstervorland (Harvestehuder Weg)",
       "type": "point",
-      "lat": 53.5765,
-      "lng": 9.9930,
+      "lat": 53.5778,
+      "lng": 10.0000,
       "official": true
     },
     {
       "id": 4,
       "name": "Alsterlauf - Hayns Park (Alte Alster)",
       "type": "point",
-      "lat": 53.5952,
-      "lng": 9.9895,
+      "lat": 53.5947,
+      "lng": 9.9903,
       "official": true
     },
     {
       "id": 5,
       "name": "Alsterlauf - Meenkwiese",
       "type": "point",
-      "lat": 53.5977,
-      "lng": 9.9904,
+      "lat": 53.5972,
+      "lng": 9.9908,
       "official": true
     },
     {
@@ -44,8 +44,8 @@
       "id": 7,
       "name": "Alsterlauf - Brabandkai an der Brabandstraße",
       "type": "point",
-      "lat": 53.6070,
-      "lng": 10.0000,
+      "lat": 53.6081,
+      "lng": 10.0002,
       "official": true
     },
     {
@@ -68,8 +68,8 @@
       "id": 10,
       "name": "Isebekkanal - Hegestieg",
       "type": "point",
-      "lat": 53.5768,
-      "lng": 9.9748,
+      "lat": 53.5775,
+      "lng": 9.9720,
       "official": true
     },
     {
@@ -100,24 +100,24 @@
       "id": 14,
       "name": "Stadtparksee - Steganlage Westufer",
       "type": "point",
-      "lat": 53.5945,
-      "lng": 10.0340,
+      "lat": 53.5935,
+      "lng": 10.0230,
       "official": true
     },
     {
       "id": 17,
       "name": "Barmbeker Stichkanal - Anleger Alter Güterbahnhof",
       "type": "point",
-      "lat": 53.5875,
-      "lng": 10.0290,
+      "lat": 53.5929,
+      "lng": 10.0338,
       "official": true
     },
     {
       "id": 18,
       "name": "Osterbekkanal - Geibelstraße",
       "type": "point",
-      "lat": 53.5819,
-      "lng": 10.0175,
+      "lat": 53.5832,
+      "lng": 10.0245,
       "official": true
     }
   ]
