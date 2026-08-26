@@ -1,15 +1,10 @@
-// Access points module: loads and renders launch/exit/mooring points.
+// Access points module: loads and renders launch/exit points.
 // Supports official points (from data/access-points.json) and
 // user-added points stored locally in the browser (localStorage),
 // with an export function so users can send new points to the maintainer.
 import { t } from './i18n.js';
 
-const iconColors = {
-  launch: 'green',
-  exit: 'orange',
-  mooring: 'blue'
-};
-
+const POINT_COLOR = 'green';
 const USER_POINTS_KEY = 'wasserwege_user_points';
 
 let pointsLayer = null;
@@ -18,12 +13,11 @@ let map = null;
 let addModeActive = false;
 let pendingLatLng = null;
 
-function createIcon(type, isUserPoint) {
-  const color = iconColors[type] || 'gray';
+function createIcon(isUserPoint) {
   const border = isUserPoint ? '2px dashed #333' : '2px solid white';
   return L.divIcon({
     className: 'access-point-icon',
-    html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:${border};box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
+    html: `<div style="background:${POINT_COLOR};width:14px;height:14px;border-radius:50%;border:${border};box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
     iconSize: [14, 14]
   });
 }
@@ -62,9 +56,8 @@ function buildPopupContent(point, isUserPoint) {
   container.appendChild(title);
   container.appendChild(document.createElement('br'));
   const typeLabel = document.createElement('span');
-  typeLabel.textContent = t(point.type);
+  typeLabel.textContent = t('point');
   container.appendChild(typeLabel);
-
   if (isUserPoint) {
     container.appendChild(document.createElement('br'));
     const badge = document.createElement('small');
@@ -80,7 +73,6 @@ function buildPopupContent(point, isUserPoint) {
     });
     container.appendChild(delBtn);
   }
-
   return container;
 }
 
@@ -90,22 +82,18 @@ function renderAllPoints() {
     map.removeLayer(pointsLayer);
   }
   pointsLayer = L.layerGroup();
-
   const official = (officialData && officialData.points) || [];
   const userPoints = getUserPoints();
-
   official.forEach((point) => {
-    L.marker([point.lat, point.lng], { icon: createIcon(point.type, false) })
+    L.marker([point.lat, point.lng], { icon: createIcon(false) })
       .bindPopup(buildPopupContent(point, false))
       .addTo(pointsLayer);
   });
-
   userPoints.forEach((point) => {
-    L.marker([point.lat, point.lng], { icon: createIcon(point.type, true) })
+    L.marker([point.lat, point.lng], { icon: createIcon(true) })
       .bindPopup(buildPopupContent(point, true))
       .addTo(pointsLayer);
   });
-
   pointsLayer.addTo(map);
 }
 
@@ -121,16 +109,12 @@ function openAddPointForm(latlng) {
     setAddMode(false);
     return;
   }
-  const typeInput = window.prompt(t('promptPointType'), 'launch');
-  const type = ['launch', 'exit', 'mooring'].includes(typeInput) ? typeInput : 'launch';
-
   addUserPoint({
     name,
-    type,
+    type: 'point',
     lat: latlng.lat,
     lng: latlng.lng
   });
-
   renderAllPoints();
   setAddMode(false);
 }
