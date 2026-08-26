@@ -3,7 +3,7 @@
     {
       "id": 1,
       "name": "Binnenalster - Anleger Ballindamm",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5539,
       "lng": 9.9950,
       "official": true
@@ -11,23 +11,15 @@
     {
       "id": 2,
       "name": "Außenalster - Steganlage Alstervorland (Harvestehuder Weg)",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5765,
       "lng": 9.9930,
       "official": true
     },
     {
-      "id": 3,
-      "name": "Alsterlauf - Slipanlage Heilwigstraße (Eichenpark)",
-      "type": "launch",
-      "lat": 53.5837,
-      "lng": 9.9877,
-      "official": true
-    },
-    {
       "id": 4,
       "name": "Alsterlauf - Hayns Park (Alte Alster)",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5952,
       "lng": 9.9895,
       "official": true
@@ -35,7 +27,7 @@
     {
       "id": 5,
       "name": "Alsterlauf - Meenkwiese",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5977,
       "lng": 9.9904,
       "official": true
@@ -43,7 +35,7 @@
     {
       "id": 6,
       "name": "Alsterlauf - Alsterkrugchaussee / Alsterkrüger Kahre",
-      "type": "launch",
+      "type": "point",
       "lat": 53.6114,
       "lng": 10.0091,
       "official": true
@@ -51,7 +43,7 @@
     {
       "id": 7,
       "name": "Alsterlauf - Brabandkai an der Brabandstraße",
-      "type": "launch",
+      "type": "point",
       "lat": 53.6070,
       "lng": 10.0000,
       "official": true
@@ -59,7 +51,7 @@
     {
       "id": 8,
       "name": "Alsterlauf - Rathenaustraße am Ringkanal",
-      "type": "launch",
+      "type": "point",
       "lat": 53.6114,
       "lng": 10.0089,
       "official": true
@@ -67,7 +59,7 @@
     {
       "id": 9,
       "name": "Alsterlauf - Woermannsweg (südlich Fuhlsbüttler Schleuse)",
-      "type": "launch",
+      "type": "point",
       "lat": 53.6234,
       "lng": 10.0284,
       "official": true
@@ -75,7 +67,7 @@
     {
       "id": 10,
       "name": "Isebekkanal - Hegestieg",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5768,
       "lng": 9.9748,
       "official": true
@@ -83,7 +75,7 @@
     {
       "id": 11,
       "name": "Isebekkanal - Steg Südufer westlich Mansteinbrücke",
-      "type": "mooring",
+      "type": "point",
       "lat": 53.5757,
       "lng": 9.9701,
       "official": true
@@ -91,7 +83,7 @@
     {
       "id": 12,
       "name": "Isebekkanal - Steg Nordufer im Mansteinpark",
-      "type": "mooring",
+      "type": "point",
       "lat": 53.5762,
       "lng": 9.9705,
       "official": true
@@ -99,39 +91,23 @@
     {
       "id": 13,
       "name": "Goldbekkanal - Stadthallenbrücke",
-      "type": "mooring",
+      "type": "point",
       "lat": 53.5917,
       "lng": 10.0315,
       "official": true
     },
     {
       "id": 14,
-      "name": "Stadtparksee - Steganlage vor der Festwiese (Kaskaden)",
-      "type": "exit",
-      "lat": 53.5940,
-      "lng": 10.0330,
-      "official": true
-    },
-    {
-      "id": 15,
-      "name": "Stadtparksee - Steganlage Nordseite",
-      "type": "exit",
-      "lat": 53.5958,
-      "lng": 10.0345,
-      "official": true
-    },
-    {
-      "id": 16,
-      "name": "Eilbekkanal - Steganlage 100m östlich Wagnerstraßenbrücke",
-      "type": "exit",
-      "lat": 53.5680,
-      "lng": 10.0287,
+      "name": "Stadtparksee - Steganlage Westufer",
+      "type": "point",
+      "lat": 53.5945,
+      "lng": 10.0340,
       "official": true
     },
     {
       "id": 17,
       "name": "Barmbeker Stichkanal - Anleger Alter Güterbahnhof",
-      "type": "mooring",
+      "type": "point",
       "lat": 53.5875,
       "lng": 10.0290,
       "official": true
@@ -139,17 +115,9 @@
     {
       "id": 18,
       "name": "Osterbekkanal - Geibelstraße",
-      "type": "launch",
+      "type": "point",
       "lat": 53.5819,
       "lng": 10.0175,
-      "official": true
-    },
-    {
-      "id": 19,
-      "name": "Osterbekkanal - Steganlage Kampnagelfabrik (Hertha-Feiner-Asmus-Stieg)",
-      "type": "launch",
-      "lat": 53.5833,
-      "lng": 10.0222,
       "official": true
     }
   ]
