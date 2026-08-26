@@ -8,6 +8,15 @@
 // точки, добавленные пользователем и сохранённые локально (localStorage),
 // а также функцию экспорта, чтобы пользователи могли отправить новые точки мейнтейнеру.
 import { t } from './i18n.js';
+import { distanceToNearestWaterway } from './waterways.js';
+
+// Maximum allowed distance (meters) from a waterway line for a new user
+// point to be accepted. Points farther away are likely on land, not a real
+// launch/exit spot.
+// Максимально допустимое расстояние (в метрах) от линии водного пути
+// для принятия новой точки пользователя. Более далекие точки, скорее всего,
+// на суше, а не реальные точки спуска/выхода.
+const MAX_DISTANCE_TO_WATER_M = 60;
 
 const POINT_COLOR = 'green';
 const USER_POINTS_KEY = 'wasserwege_user_points';
@@ -141,6 +150,14 @@ function handleMapClick(e) {
 // TODO: replace window.prompt with a proper in-app form for better UX.
 // TODO: заменить window.prompt на нормальную форму внутри приложения для лучшего UX.
 function openAddPointForm(latlng) {
+  // Validate that the clicked point is close enough to a mapped waterway.
+  // Проверяет, что точка клика достаточно близка к нанесённому водному пути.
+  const distance = distanceToNearestWaterway(latlng.lat, latlng.lng);
+  if (distance > MAX_DISTANCE_TO_WATER_M) {
+    window.alert(t('pointTooFarFromWater'));
+    setAddMode(false);
+    return;
+  }
   const name = window.prompt(t('promptPointName'));
   if (!name) {
     setAddMode(false);
