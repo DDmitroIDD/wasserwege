@@ -14,6 +14,7 @@ const translations = {
     delete: 'Удалить',
     exportPoints: 'Экспорт точек',
     clearPoints: 'Очистить мои точки'
+    pointTooFarFromWater: 'Слишком далеко от воды. Выберите точку ближе к берегу.',
   },
   uk: {
     locate: 'Моє місцезнаходження',
@@ -29,6 +30,7 @@ const translations = {
     delete: 'Видалити',
     exportPoints: 'Експорт точок',
     clearPoints: 'Очистити мої точки'
+    pointTooFarFromWater: 'Занадто далеко від води. Оберіть точку ближче до берега.',
   },
   de: {
     locate: 'Mein Standort',
@@ -44,6 +46,7 @@ const translations = {
     delete: 'Löschen',
     exportPoints: 'Punkte exportieren',
     clearPoints: 'Meine Punkte löschen'
+    pointTooFarFromWater: 'Zu weit vom Wasser entfernt. Bitte wähle einen Punkt näher am Ufer.',
   },
   en: {
     locate: 'My location',
@@ -59,6 +62,7 @@ const translations = {
     delete: 'Delete',
     exportPoints: 'Export points',
     clearPoints: 'Clear my points'
+    pointTooFarFromWater: 'Too far from water. Please choose a point closer to the bank.',
   }
 };
 
