@@ -2,6 +2,24 @@
 let navigableLayer = null;
 let nonNavigableLayer = null;
 
+// Some real-world navigable Alster canals are not tagged with boat=yes/canoe=yes
+// in OSM, but are commonly paddled. Force them to be treated as navigable by name.
+const NAVIGABLE_NAME_OVERRIDES = [
+  'brabandkanal',
+  'skagerrakkanal',
+  'skagerrak-kanal',
+  'skagerakkanal',
+  'inselkanal',
+  'leinpfadkanal',
+  'werftkanal'
+];
+
+function isNameOverriddenNavigable(name) {
+  if (!name) return false;
+  const normalized = name.toLowerCase();
+  return NAVIGABLE_NAME_OVERRIDES.some((n) => normalized.includes(n));
+}
+
 async function loadWaterwaySource(url) {
   const response = await fetch(url);
   const data = await response.json();
@@ -11,7 +29,11 @@ async function loadWaterwaySource(url) {
 
     const props = feature.properties || {};
     const name = props.name || props['name:en'] || props['@id'] || 'Waterway';
-    const boatAllowed = props.boat === 'yes' || props.boat === 'canoe' || props.canoe === 'yes';
+    const boatAllowed =
+      props.boat === 'yes' ||
+      props.boat === 'canoe' ||
+      props.canoe === 'yes' ||
+      isNameOverriddenNavigable(name);
 
     const coords = feature.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
 
