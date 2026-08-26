@@ -13,8 +13,10 @@ const translations = {
     userAdded: 'Добавлено пользователем',
     delete: 'Удалить',
     exportPoints: 'Экспорт точек',
-    clearPoints: 'Очистить мои точки'
+    clearPoints: 'Очистить мои точки',
     pointTooFarFromWater: 'Слишком далеко от воды. Выберите точку ближе к берегу.',
+    cancel: 'Отмена',
+    save: 'Сохранить',
   },
   uk: {
     locate: 'Моє місцезнаходження',
@@ -29,8 +31,10 @@ const translations = {
     userAdded: 'Додано користувачем',
     delete: 'Видалити',
     exportPoints: 'Експорт точок',
-    clearPoints: 'Очистити мої точки'
+    clearPoints: 'Очистити мої точки',
     pointTooFarFromWater: 'Занадто далеко від води. Оберіть точку ближче до берега.',
+    cancel: 'Скасувати',
+    save: 'Зберегти',
   },
   de: {
     locate: 'Mein Standort',
@@ -45,8 +49,10 @@ const translations = {
     userAdded: 'Vom Nutzer hinzugefügt',
     delete: 'Löschen',
     exportPoints: 'Punkte exportieren',
-    clearPoints: 'Meine Punkte löschen'
+    clearPoints: 'Meine Punkte löschen',
     pointTooFarFromWater: 'Zu weit vom Wasser entfernt. Bitte wähle einen Punkt näher am Ufer.',
+    cancel: 'Abbrechen',
+    save: 'Speichern',
   },
   en: {
     locate: 'My location',
@@ -61,8 +67,10 @@ const translations = {
     userAdded: 'User added',
     delete: 'Delete',
     exportPoints: 'Export points',
-    clearPoints: 'Clear my points'
+    clearPoints: 'Clear my points',
     pointTooFarFromWater: 'Too far from water. Please choose a point closer to the bank.',
+    cancel: 'Cancel',
+    save: 'Save',
   }
 };
 
