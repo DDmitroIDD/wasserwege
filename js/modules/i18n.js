@@ -17,6 +17,9 @@ const translations = {
     pointTooFarFromWater: 'Слишком далеко от воды. Выберите точку ближе к берегу.',
     cancel: 'Отмена',
     save: 'Сохранить',
+    addPhoto: 'Фото (необязательно)',
+    submitted: 'Точка отправлена на модерацию.',
+    submitError: 'Ошибка при отправке. Попробуйте ещё раз.',
   },
   uk: {
     locate: 'Моє місцезнаходження',
@@ -35,6 +38,9 @@ const translations = {
     pointTooFarFromWater: 'Занадто далеко від води. Оберіть точку ближче до берега.',
     cancel: 'Скасувати',
     save: 'Зберегти',
+    addPhoto: 'Фото (необовʼязково)',
+    submitted: 'Точку надіслано на модерацію.',
+    submitError: 'Помилка при надсиланні. Спробуйте ще раз.',
   },
   de: {
     locate: 'Mein Standort',
@@ -53,6 +59,9 @@ const translations = {
     pointTooFarFromWater: 'Zu weit vom Wasser entfernt. Bitte wähle einen Punkt näher am Ufer.',
     cancel: 'Abbrechen',
     save: 'Speichern',
+    addPhoto: 'Foto (optional)',
+    submitted: 'Punkt zur Prüfung eingereicht.',
+    submitError: 'Fehler beim Einreichen. Bitte erneut versuchen.',
   },
   en: {
     locate: 'My location',
@@ -71,7 +80,10 @@ const translations = {
     pointTooFarFromWater: 'Too far from water. Please choose a point closer to the bank.',
     cancel: 'Cancel',
     save: 'Save',
-  }
+    addPhoto: 'Photo (optional)',
+    submitted: 'Point submitted for moderation.',
+    submitError: 'Submission failed. Please try again.',
+  },
 };
 
 let currentLang = 'ru';
@@ -81,27 +93,14 @@ export function t(key) {
 }
 
 export function initI18n(selectEl) {
-  const browserLang = navigator.language.slice(0, 2);
-  currentLang = translations[browserLang] ? browserLang : 'en';
-  selectEl.value = currentLang;
-  applyTranslations();
-  selectEl.addEventListener('change', (e) => {
-    currentLang = e.target.value;
-    applyTranslations();
-    window.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: currentLang } }));
-  });
-}
-
-function applyTranslations() {
-  const locateBtn = document.getElementById('locate-btn');
-  if (locateBtn) locateBtn.textContent = t('locate');
-  const addBtn = document.getElementById('add-point-btn');
-  if (addBtn) addBtn.textContent = t('addPoint');
-  const exportBtn = document.getElementById('export-points-btn');
-  if (exportBtn) exportBtn.textContent = t('exportPoints');
-  const clearBtn = document.getElementById('clear-points-btn');
-  if (clearBtn) clearBtn.textContent = t('clearPoints');
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    el.textContent = t(el.getAttribute('data-i18n'));
-  });
+  function apply(lang) {
+    currentLang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const k = el.dataset.i18n;
+      el.textContent = t(k);
+    });
+    window.dispatchEvent(new CustomEvent('i18n:changed'));
+  }
+  apply(selectEl.value);
+  selectEl.addEventListener('change', (e) => apply(e.target.value));
 }
