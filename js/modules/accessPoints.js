@@ -1,37 +1,22 @@
-// Access points module: loads and renders launch/exit points.
-// Модуль точек доступа: загружает и отображает точки спуска/выхода.
-//
-// Supports official points (from data/access-points.json) and
-// user-added points stored locally in the browser (localStorage),
-// with an export function so users can send new points to the maintainer.
-// Поддерживает официальные точки (из data/access-points.json) и
-// точки, добавленные пользователем и сохранённые локально (localStorage),
-// а также функцию экспорта, чтобы пользователи могли отправить новые точки мейнтейнеру.
+// Access points module: loads and renders official launch/exit points.
+// User-submitted points go to Supabase for moderator approval.
+// Модуль точек доступа: загружает официальные точки, пользовательские заявки идут в Supabase.
+
 import { t } from './i18n.js';
 import { distanceToNearestWaterway } from './waterways.js';
+import { getSupabaseClient } from './supabaseClient.js';
 
-// Maximum allowed distance (meters) from a waterway line for a new user
-// point to be accepted. Points farther away are likely on land, not a real
-// launch/exit spot.
-// Максимально допустимое расстояние (в метрах) от линии водного пути
-// для принятия новой точки пользователя. Более далекие точки, скорее всего,
-// на суше, а не реальные точки спуска/выхода.
 const MAX_DISTANCE_TO_WATER_M = 60;
-
 const POINT_COLOR = 'green';
-const USER_POINTS_KEY = 'wasserwege_user_points';
 
-// Module-level state / Состояние модуля
-let pointsLayer = null;     // Leaflet layer group holding all point markers / слой со всеми маркерами точек
-let officialData = null;    // Cached official points data / кэш официальных данных
-let map = null;             // Reference to the Leaflet map instance / ссылка на карту Leaflet
-let addModeActive = false;  // Whether "add point" mode is active / активен ли режим добавления точки
-let pendingLatLng = null;   // Coordinates awaiting confirmation / координаты, ожидающие подтверждения
+// Module-level state
+let pointsLayer = null;
+let officialData = null;
+let map = null;
+let addModeActive = false;
+let pendingLatLng = null;
 
-// Build a colored circular marker icon.
-// Строит иконку маркера в виде цветного кружка.
-// User-added points get a dashed border to visually distinguish them from official ones.
-// Точки, добавленные пользователем, получают пунктирную рамку, чтобы отличать их от официальных.
+// Build colored circular marker icon.
 function createIcon(isUserPoint) {
   const border = isUserPoint ? '2px dashed #333' : '2px solid white';
   return L.divIcon({
@@ -41,45 +26,23 @@ function createIcon(isUserPoint) {
   });
 }
 
-// Read user-added points from localStorage.
-// Считывает точки, добавленные пользователем, из localStorage.
-function getUserPoints() {
-  try {
-    const raw = localStorage.getItem(USER_POINTS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (err) {
-    console.error('Failed to read user points:', err);
-    return [];
+// Redraw all official markers on the map.
+function renderAllPoints() {
+  if (!map) return;
+  if (pointsLayer) {
+    map.removeLayer(pointsLayer);
   }
+  pointsLayer = L.layerGroup();
+  const official = (officialData && officialData.points) || [];
+  official.forEach((point) => {
+    L.marker([point.lat, point.lng], { icon: createIcon(false) })
+      .bindPopup(buildPopupContent(point, false))
+      .addTo(pointsLayer);
+  });
+  pointsLayer.addTo(map);
 }
 
-// Persist user-added points to localStorage.
-// Сохраняет точки пользователя в localStorage.
-function saveUserPoints(points) {
-  localStorage.setItem(USER_POINTS_KEY, JSON.stringify(points));
-}
-
-// Add a new user point, assigning it a unique id based on timestamp.
-// Добавляет новую точку пользователя, присваивая ей уникальный id на основе времени.
-function addUserPoint(point) {
-  const points = getUserPoints();
-  point.id = 'user-' + Date.now();
-  points.push(point);
-  saveUserPoints(points);
-  return point;
-}
-
-// Remove a user point by id.
-// Удаляет точку пользователя по id.
-function removeUserPoint(id) {
-  const points = getUserPoints().filter((p) => p.id !== id);
-  saveUserPoints(points);
-}
-
-// Build the popup DOM content shown when a marker is clicked.
-// Строит содержимое всплывающего окна (popup), показываемого при клике на маркер.
-// For user points, adds a "user added" badge and a delete button.
-// Для точек пользователя добавляет пометку "добавлено пользователем" и кнопку удаления.
+// Build popup DOM content.
 function buildPopupContent(point, isUserPoint) {
   const container = document.createElement('div');
   const title = document.createElement('b');
@@ -89,87 +52,94 @@ function buildPopupContent(point, isUserPoint) {
   const typeLabel = document.createElement('span');
   typeLabel.textContent = t('point');
   container.appendChild(typeLabel);
-
   if (isUserPoint) {
     container.appendChild(document.createElement('br'));
     const badge = document.createElement('small');
     badge.textContent = t('userAdded');
     container.appendChild(badge);
-    container.appendChild(document.createElement('br'));
-    const delBtn = document.createElement('button');
-    delBtn.textContent = t('delete');
-    delBtn.className = 'popup-delete-btn';
-    delBtn.addEventListener('click', () => {
-      removeUserPoint(point.id);
-      renderAllPoints();
-    });
-    container.appendChild(delBtn);
   }
   return container;
 }
 
-// Redraw all markers (official + user) on the map.
-// Перерисовывает все маркеры (официальные + пользовательские) на карте.
-// Called after loading data or after any add/remove of a user point.
-// Вызывается после загрузки данных или после добавления/удаления точки пользователя.
-function renderAllPoints() {
-  if (!map) return;
-  if (pointsLayer) {
-    map.removeLayer(pointsLayer);
-  }
-  pointsLayer = L.layerGroup();
-
-  const official = (officialData && officialData.points) || [];
-  const userPoints = getUserPoints();
-
-  official.forEach((point) => {
-    L.marker([point.lat, point.lng], { icon: createIcon(false) })
-      .bindPopup(buildPopupContent(point, false))
-      .addTo(pointsLayer);
-  });
-
-  userPoints.forEach((point) => {
-    L.marker([point.lat, point.lng], { icon: createIcon(true) })
-      .bindPopup(buildPopupContent(point, true))
-      .addTo(pointsLayer);
-  });
-
-  pointsLayer.addTo(map);
-}
-
-// Handle a click on the map while "add point" mode is active.
-// Обрабатывает клик по карте, когда активен режим добавления точки.
+// Handle map click when add mode is active.
 function handleMapClick(e) {
   if (!addModeActive) return;
   pendingLatLng = e.latlng;
-  openAddPointForm(e.latlng);
+  openAddPointModal(e.latlng);
 }
 
-// Ask the user for a point name (simple prompt) and save the new point.
-// Запрашивает у пользователя название точки (простой prompt) и сохраняет новую точку.
-// TODO: replace window.prompt with a proper in-app form for better UX.
-// TODO: заменить window.prompt на нормальную форму внутри приложения для лучшего UX.
-function openAddPointForm(latlng) {
-  // Validate that the clicked point is close enough to a mapped waterway.
-  // Проверяет, что точка клика достаточно близка к нанесённому водному пути.
+// Open the add-point modal (defined in index.html).
+function openAddPointModal(latlng) {
   const distance = distanceToNearestWaterway(latlng.lat, latlng.lng);
   if (distance > MAX_DISTANCE_TO_WATER_M) {
     window.alert(t('pointTooFarFromWater'));
     setAddMode(false);
     return;
   }
-  const name = window.prompt(t('promptPointName'));
-  if (!name) {
+  const modal = document.getElementById('add-point-modal');
+  const nameInput = document.getElementById('add-point-name-input');
+  const photoInput = document.getElementById('add-point-photo-input');
+  if (!modal) return;
+  nameInput.value = '';
+  if (photoInput) photoInput.value = '';
+  modal.hidden = false;
+
+  document.getElementById('add-point-save-btn').onclick = async () => {
+    const name = nameInput.value.trim();
+    if (!name) return;
+    const photoFile = photoInput ? photoInput.files[0] : null;
+    modal.hidden = true;
     setAddMode(false);
-    return;
-  }
-  addUserPoint({ name, type: 'point', lat: latlng.lat, lng: latlng.lng });
-  renderAllPoints();
-  setAddMode(false);
+    await submitPointForModeration(name, latlng.lat, latlng.lng, photoFile);
+  };
+
+  document.getElementById('add-point-cancel-btn').onclick = () => {
+    modal.hidden = true;
+    setAddMode(false);
+  };
 }
 
-// Toggle "add point" mode on/off; updates cursor style and notifies listeners.
-// Переключает режим "добавить точку"; меняет вид курсора и уведомляет слушателей.
+// Submit a new point to Supabase submitted_points table.
+// Optionally uploads a photo to the point-photos storage bucket.
+async function submitPointForModeration(name, lat, lng, photoFile) {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    window.alert(t('submitError'));
+    return;
+  }
+  try {
+    let photoUrl = null;
+    if (photoFile) {
+      const ext = photoFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('point-photos')
+        .upload(fileName, photoFile, { upsert: false });
+      if (uploadError) {
+        console.error('Photo upload error:', uploadError);
+      } else {
+        const { data: urlData } = supabase.storage
+          .from('point-photos')
+          .getPublicUrl(fileName);
+        photoUrl = urlData.publicUrl;
+      }
+    }
+    const { error: insertError } = await supabase
+      .from('submitted_points')
+      .insert([{ name, lat, lng, photo_url: photoUrl, status: 'pending' }]);
+    if (insertError) {
+      console.error('Insert error:', insertError);
+      window.alert(t('submitError'));
+    } else {
+      window.alert(t('submitted'));
+    }
+  } catch (err) {
+    console.error('submitPointForModeration error:', err);
+    window.alert(t('submitError'));
+  }
+}
+
+// Toggle "add point" mode on/off.
 export function setAddMode(active) {
   addModeActive = active;
   if (!map) return;
@@ -178,32 +148,20 @@ export function setAddMode(active) {
   window.dispatchEvent(new CustomEvent('addmode:changed', { detail: { active } }));
 }
 
-// Whether "add point" mode is currently active.
-// Активен ли сейчас режим "добавить точку".
 export function isAddModeActive() {
   return addModeActive;
 }
 
-// Export all user-added points as a JSON string, e.g. so the user can
-// send them to the maintainer to be added to the official dataset.
-// Экспортирует все точки пользователя в виде JSON-строки, например,
-// чтобы пользователь мог отправить их мейнтейнеру для добавления в официальные данные.
+// Export functions no longer needed (no localStorage points), kept for API compatibility.
 export function exportUserPointsAsJson() {
-  const points = getUserPoints();
-  return JSON.stringify({ points }, null, 2);
+  return JSON.stringify({ points: [] }, null, 2);
 }
 
-// Remove all user-added points (used by the "clear my points" button).
-// Удаляет все точки пользователя (используется кнопкой "очистить мои точки").
 export function clearUserPoints() {
-  saveUserPoints([]);
-  renderAllPoints();
+  // no-op: user points now go through moderation, not localStorage
 }
 
-// Entry point: loads official points from JSON, renders all points,
-// and wires up the map click handler for adding new points.
-// Точка входа: загружает официальные точки из JSON, отображает все точки
-// и подключает обработчик кликов по карте для добавления новых точек.
+// Entry point: load official points and wire up map click handler.
 export async function loadAccessPoints(leafletMap) {
   map = leafletMap;
   try {
