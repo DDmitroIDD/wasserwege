@@ -6,7 +6,7 @@ import { t } from './i18n.js';
 import { distanceToNearestWaterway } from './waterways.js';
 import { getSupabaseClient } from './supabaseClient.js';
 
-const MAX_DISTANCE_TO_WATER_M = 60;
+const MAX_DISTANCE_TO_WATER_M = 150;
 const POINT_COLOR = 'green';
 
 // Module-level state
