@@ -10,11 +10,20 @@ body{font-family:system-ui,sans-serif;background:#f5f5f5;color:#333}
 header{background:#1a73e8;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:1.2rem}
 #logout-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.9rem}
-#login-section{max-width:360px;margin:80px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+#login-section{max-width:380px;margin:80px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 #login-section h2{margin-bottom:20px;font-size:1.1rem;text-align:center}
-input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:1rem;margin-bottom:12px}
-button{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer}
-button:hover{background:#1558b0}
+.input-group{position:relative;margin-bottom:12px}
+.input-group input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:1rem;padding-right:44px}
+.input-group input:focus{outline:none;border-color:#1a73e8}
+.gen-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;width:auto;font-size:1.1rem;color:#666;display:flex;align-items:center}
+.gen-btn:hover{color:#1a73e8}
+.gen-btn svg{width:18px;height:18px}
+#generated-pwd{font-size:.78rem;color:#555;margin-top:-6px;margin-bottom:10px;padding:6px 10px;background:#f0f4ff;border-radius:6px;display:none;word-break:break-all;cursor:pointer;border:1px dashed #aac}
+#generated-pwd:hover{background:#e0ebff}
+#generated-pwd span{display:block;font-weight:600;color:#1a73e8}
+#generated-pwd small{color:#888}
+button.submit-btn{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer}
+button.submit-btn:hover{background:#1558b0}
 #error-msg{color:#d32f2f;font-size:.85rem;margin-top:8px;text-align:center}
 #admin-section{display:none;padding:24px}
 #admin-section h2{margin-bottom:16px;font-size:1.1rem}
@@ -45,9 +54,23 @@ button:hover{background:#1558b0}
 </header>
 <div id="login-section">
   <h2>Вход в панель модерации</h2>
-  <input type="email" id="email-input" placeholder="Email" autocomplete="username">
-  <input type="password" id="password-input" placeholder="Пароль" autocomplete="current-password">
-  <button onclick="login()">Войти</button>
+  <div class="input-group">
+    <input type="email" id="email-input" placeholder="Email" autocomplete="username">
+  </div>
+  <div class="input-group">
+    <input type="password" id="password-input" placeholder="Пароль" autocomplete="current-password">
+    <button class="gen-btn" onclick="generatePassword()" title="Сгенерировать безопасный пароль">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M9 12l2 2 4-4"/>
+      </svg>
+    </button>
+  </div>
+  <div id="generated-pwd" onclick="copyPassword()">
+    <span id="gen-pwd-text"></span>
+    <small>Нажмите чтобы скопировать · пароль уже вставлен в поле</small>
+  </div>
+  <button class="submit-btn" onclick="login()">Войти</button>
   <div id="error-msg"></div>
 </div>
 <div id="admin-section">
@@ -73,6 +96,29 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (session) showAdmin();
 });
 
+function generatePassword() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+  const arr = new Uint8Array(20);
+  crypto.getRandomValues(arr);
+  const pwd = Array.from(arr).map(b => chars[b % chars.length]).join('');
+  document.getElementById('password-input').value = pwd;
+  document.getElementById('password-input').type = 'text';
+  document.getElementById('gen-pwd-text').textContent = pwd;
+  const box = document.getElementById('generated-pwd');
+  box.style.display = 'block';
+  setTimeout(() => { document.getElementById('password-input').type = 'password'; }, 3000);
+}
+
+function copyPassword() {
+  const pwd = document.getElementById('gen-pwd-text').textContent;
+  navigator.clipboard.writeText(pwd).then(() => {
+    document.querySelector('#generated-pwd small').textContent = 'Скопировано!';
+    setTimeout(() => {
+      document.querySelector('#generated-pwd small').textContent = 'Нажмите чтобы скопировать · пароль уже вставлен в поле';
+    }, 2000);
+  });
+}
+
 async function login() {
   const email = document.getElementById('email-input').value.trim();
   const password = document.getElementById('password-input').value;
@@ -89,6 +135,7 @@ async function logout() {
   document.getElementById('login-section').style.display = '';
   document.getElementById('admin-section').style.display = 'none';
   document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('generated-pwd').style.display = 'none';
 }
 
 function showAdmin() {
