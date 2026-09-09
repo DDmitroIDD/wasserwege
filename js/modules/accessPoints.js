@@ -3,10 +3,8 @@
 // Модуль точек доступа: загружает официальные точки, пользовательские заявки идут в Supabase.
 
 import { t } from './i18n.js';
-import { distanceToNearestWaterway } from './waterways.js';
 import { getSupabaseClient } from './supabaseClient.js';
 
-const MAX_DISTANCE_TO_WATER_M = 150;
 const POINT_COLOR = 'green';
 
 // Module-level state
@@ -70,12 +68,6 @@ function handleMapClick(e) {
 
 // Open the add-point modal (defined in index.html).
 function openAddPointModal(latlng) {
-  const distance = distanceToNearestWaterway(latlng.lat, latlng.lng);
-  if (distance > MAX_DISTANCE_TO_WATER_M) {
-    window.alert(t('pointTooFarFromWater'));
-    setAddMode(false);
-    return;
-  }
   const modal = document.getElementById('add-point-modal');
   const nameInput = document.getElementById('add-point-name-input');
   const photoInput = document.getElementById('add-point-photo-input');
