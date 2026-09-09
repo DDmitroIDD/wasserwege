@@ -178,7 +178,7 @@ function renderCard(p) {
     <div class="card-body">
       <strong>${p.name}</strong>
       <span class="badge ${badges[p.status]}">${labels[p.status]}</span>
-      <div class="card-meta">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
+              <a class="card-meta" href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lng}#map=18/${p.lat}/${p.lng}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</a>
       <div class="card-meta">🕐 ${date}</div>
       ${actions}
     </div>
