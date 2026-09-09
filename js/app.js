@@ -75,3 +75,13 @@ if (clearBtn) {
 window.addEventListener('i18n:changed', () => {
   loadAccessPoints(map);
 });
+
+// Центрируем карту на координатах из URL-якоря (#lat,lng), используется ссылками из панели модерации
+// Center the map on coordinates from the URL hash anchor (#lat,lng), used by links from the moderation panel
+const hashMatch = window.location.hash.match(/^#(-?\d+\.?\d*),(-?\d+\.?\d*)$/);
+if (hashMatch) {
+  const hashLat = parseFloat(hashMatch[1]);
+  const hashLng = parseFloat(hashMatch[2]);
+  map.setView([hashLat, hashLng], 18);
+  L.marker([hashLat, hashLng]).addTo(map);
+}
