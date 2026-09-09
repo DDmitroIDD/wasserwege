@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wasserwege Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f5;color:#333}
+header{background:#1a73e8;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:1.2rem}
+#logout-btn{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.9rem}
+#login-section{max-width:360px;margin:80px auto;background:#fff;padding:32px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+#login-section h2{margin-bottom:20px;font-size:1.1rem;text-align:center}
+input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:1rem;margin-bottom:12px}
+button{width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer}
+button:hover{background:#1558b0}
+#error-msg{color:#d32f2f;font-size:.85rem;margin-top:8px;text-align:center}
+#admin-section{display:none;padding:24px}
+#admin-section h2{margin-bottom:16px;font-size:1.1rem}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden}
+.card-body{padding:16px}
+.card-body strong{font-size:1rem}
+.card-meta{font-size:.82rem;color:#666;margin:6px 0}
+.card-photo{width:100%;max-height:220px;object-fit:cover;display:block}
+.card-actions{display:flex;gap:10px;margin-top:12px}
+.btn-approve{flex:1;padding:8px;background:#34a853;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.95rem}
+.btn-approve:hover{background:#2d8f47}
+.btn-reject{flex:1;padding:8px;background:#ea4335;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.95rem}
+.btn-reject:hover{background:#c62828}
+.empty{text-align:center;color:#999;padding:40px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:600;margin-left:8px}
+.badge-pending{background:#fff3e0;color:#e65100}
+.badge-approved{background:#e8f5e9;color:#2e7d32}
+.badge-rejected{background:#fce4ec;color:#b71c1c}
+#filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{padding:6px 16px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:.85rem}
+.filter-btn.active{background:#1a73e8;color:#fff;border-color:#1a73e8}
+</style>
+</head>
+<body>
+<header>
+  <h1>Wasserwege — Модерация точек</h1>
+  <button id="logout-btn" style="display:none" onclick="logout()">Выйти</button>
+</header>
+<div id="login-section">
+  <h2>Вход в панель модерации</h2>
+  <input type="email" id="email-input" placeholder="Email" autocomplete="username">
+  <input type="password" id="password-input" placeholder="Пароль" autocomplete="current-password">
+  <button onclick="login()">Войти</button>
+  <div id="error-msg"></div>
+</div>
+<div id="admin-section">
+  <h2>Заявки на добавление точек</h2>
+  <div id="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('pending',this)">Ожидают</button>
+    <button class="filter-btn" onclick="setFilter('approved',this)">Одобренные</button>
+    <button class="filter-btn" onclick="setFilter('rejected',this)">Отклонённые</button>
+    <button class="filter-btn" onclick="setFilter('all',this)">Все</button>
+  </div>
+  <div id="points-list"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://illdwjdggnopizqoeaun.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VuPMwSIIsAvDeqeTLtk3hA_MbI8WmTL';
+let sb = null;
+let currentFilter = 'pending';
+
+window.addEventListener('DOMContentLoaded', async () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) showAdmin();
+});
+
+async function login() {
+  const email = document.getElementById('email-input').value.trim();
+  const password = document.getElementById('password-input').value;
+  const errEl = document.getElementById('error-msg');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Заполните все поля'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = error.message; return; }
+  showAdmin();
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  document.getElementById('login-section').style.display = '';
+  document.getElementById('admin-section').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+}
+
+function showAdmin() {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('admin-section').style.display = '';
+  document.getElementById('logout-btn').style.display = '';
+  loadPoints();
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadPoints();
+}
+
+async function loadPoints() {
+  const list = document.getElementById('points-list');
+  list.innerHTML = '<div class="empty">Загрузка...</div>';
+  let query = sb.from('submitted_points').select('*').order('created_at', { ascending: false });
+  if (currentFilter !== 'all') query = query.eq('status', currentFilter);
+  const { data, error } = await query;
+  if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
+  if (!data.length) { list.innerHTML = '<div class="empty">Нет заявок</div>'; return; }
+  list.innerHTML = data.map(p => renderCard(p)).join('');
+}
+
+function renderCard(p) {
+  const badges = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' };
+  const labels = { pending:'ожидает', approved:'одобрено', rejected:'отклонено' };
+  const photo = p.photo_url ? `<img class="card-photo" src="${p.photo_url}" alt="фото" onerror="this.style.display='none'">` : '';
+  const actions = p.status === 'pending' ? `
+    <div class="card-actions">
+      <button class="btn-approve" onclick="moderate('${p.id}','approved')">Одобрить</button>
+      <button class="btn-reject" onclick="moderate('${p.id}','rejected')">Отклонить</button>
+    </div>` : '';
+  const date = new Date(p.created_at).toLocaleString('ru');
+  return `<div class="card" id="card-${p.id}">
+    ${photo}
+    <div class="card-body">
+      <strong>${p.name}</strong>
+      <span class="badge ${badges[p.status]}">${labels[p.status]}</span>
+      <div class="card-meta">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
+      <div class="card-meta">🕐 ${date}</div>
+      ${actions}
+    </div>
+  </div>`;
+}
+
+async function moderate(id, status) {
+  const { error } = await sb.from('submitted_points').update({ status }).eq('id', id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  loadPoints();
+}
+</script>
+</body>
+</html>
