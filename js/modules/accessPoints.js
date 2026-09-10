@@ -1,6 +1,7 @@
 // Access points module: loads and renders official launch/exit points.
 // User-submitted points go to Supabase for moderator approval.
-// Модуль точек доступа: загружает официальные точки, пользовательские заявки идут в Supabase.
+// Approved user points are stored in access_points table and shown on the map too.
+// Модуль точек доступа: загружает официальные точки и одобренные пользовательские, заявки идут в Supabase.
 
 import { t } from './i18n.js';
 import { getSupabaseClient } from './supabaseClient.js';
@@ -10,6 +11,7 @@ const POINT_COLOR = 'green';
 // Module-level state
 let pointsLayer = null;
 let officialData = null;
+let approvedUserPoints = [];
 let map = null;
 let addModeActive = false;
 let pendingLatLng = null;
@@ -19,12 +21,12 @@ function createIcon(isUserPoint) {
   const border = isUserPoint ? '2px dashed #333' : '2px solid white';
   return L.divIcon({
     className: 'access-point-icon',
-    html: `<div style="background:${POINT_COLOR};width:14px;height:14px;border-radius:50%;border:${border};box-shadow:0 0 3px rgba(0,0,0,0.5);"></div>`,
+    html: `<div style="background:${POINT_COLOR};width:14px;height:14px;border-radius:50%;border:${border};box-shadow:0 0 3px rgba(0,0,0,.5);"></div>`,
     iconSize: [14, 14]
   });
 }
 
-// Redraw all official markers on the map.
+// Redraw all official + approved user markers on the map.
 function renderAllPoints() {
   if (!map) return;
   if (pointsLayer) {
@@ -35,6 +37,11 @@ function renderAllPoints() {
   official.forEach((point) => {
     L.marker([point.lat, point.lng], { icon: createIcon(false) })
       .bindPopup(buildPopupContent(point, false))
+      .addTo(pointsLayer);
+  });
+  approvedUserPoints.forEach((point) => {
+    L.marker([point.lat, point.lng], { icon: createIcon(true) })
+      .bindPopup(buildPopupContent(point, true))
       .addTo(pointsLayer);
   });
   pointsLayer.addTo(map);
@@ -153,7 +160,24 @@ export function clearUserPoints() {
   // no-op: user points now go through moderation, not localStorage
 }
 
-// Entry point: load official points and wire up map click handler.
+// Load approved user-submitted points from Supabase access_points table.
+async function loadApprovedUserPoints() {
+  const supabase = getSupabaseClient();
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase.from('access_points').select('*');
+    if (error) {
+      console.error('Failed to load approved user points:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.error('loadApprovedUserPoints error:', err);
+    return [];
+  }
+}
+
+// Entry point: load official points + approved user points and wire up map click handler.
 export async function loadAccessPoints(leafletMap) {
   map = leafletMap;
   try {
@@ -161,6 +185,7 @@ export async function loadAccessPoints(leafletMap) {
       const response = await fetch('data/access-points.json');
       officialData = await response.json();
     }
+    approvedUserPoints = await loadApprovedUserPoints();
     renderAllPoints();
     map.on('click', handleMapClick);
   } catch (err) {
