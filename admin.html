@@ -41,6 +41,8 @@ button.submit-btn:hover{background:#1558b0}
 .btn-edit:hover{background:#e0a800}
 .btn-delete{flex:1;padding:8px;background:#ea4335;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.95rem}
 .btn-delete:hover{background:#c62828}
+.btn-add{padding:8px 20px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;margin-bottom:16px}
+.btn-add:hover{background:#1558b0}
 .empty{text-align:center;color:#999;padding:40px}
 .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.75rem;font-weight:600;margin-left:8px}
 .badge-pending{background:#fff3e0;color:#e65100}
@@ -48,24 +50,28 @@ button.submit-btn:hover{background:#1558b0}
 .badge-rejected{background:#fce4ec;color:#b71c1c}
 .badge-official{background:#e3f2fd;color:#0d47a1}
 .badge-user{background:#f3e5f5;color:#6a1b9a}
+.badge-route{background:#e8f5e9;color:#1b5e20}
 #filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .filter-btn{padding:6px 16px;border:1px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:.85rem}
 .filter-btn.active{background:#1a73e8;color:#fff;border-color:#1a73e8}
-#tabs-bar{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #ddd}
+#tabs-bar{display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #ddd;flex-wrap:wrap}
 .tab-btn{padding:10px 20px;border:none;background:none;cursor:pointer;font-size:1rem;color:#666;border-bottom:3px solid transparent}
 .tab-btn.active{color:#1a73e8;border-bottom-color:#1a73e8;font-weight:600}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
+/* FIX: hidden attribute overrides display:flex on modal overlays */
+.modal-overlay[hidden]{display:none}
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
-.modal-box{background:#fff;padding:24px;border-radius:12px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto}
+.modal-box{background:#fff;padding:24px;border-radius:12px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto}
 .modal-box h3{margin-bottom:16px}
 .modal-box label{display:block;font-size:.85rem;color:#555;margin-bottom:6px;margin-top:12px}
 .modal-box input,.modal-box textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:.95rem}
-.modal-box textarea{min-height:100px;font-family:monospace;font-size:.82rem}
+.modal-box textarea{min-height:120px;font-family:monospace;font-size:.82rem;resize:vertical}
 .modal-actions{display:flex;gap:10px;margin-top:20px}
 .modal-actions button{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:.95rem}
 .modal-save{background:#1a73e8;color:#fff}
 .modal-cancel{background:#eee;color:#333}
+.route-coords-preview{font-size:.75rem;color:#666;margin-top:4px}
 </style>
 </head>
 <body>
@@ -98,6 +104,7 @@ button.submit-btn:hover{background:#1558b0}
 <div id="tabs-bar">
 <button class="tab-btn active" onclick="setTab('moderation',this)">Заявки на модерации</button>
 <button class="tab-btn" onclick="setTab('allpoints',this)">Все точки</button>
+<button class="tab-btn" onclick="setTab('routes',this)">Маршруты</button>
 </div>
 
 <div id="tab-moderation" class="tab-panel active">
@@ -116,8 +123,15 @@ button.submit-btn:hover{background:#1558b0}
 <div id="all-points-list"></div>
 </div>
 
+<div id="tab-routes" class="tab-panel">
+<h2>Пользовательские маршруты</h2>
+<button class="btn-add" onclick="openRouteModal(null)">+ Добавить маршрут</button>
+<div id="routes-list"></div>
 </div>
 
+</div>
+
+<!-- Edit access point modal -->
 <div id="edit-modal" class="modal-overlay" hidden>
 <div class="modal-box">
 <h3>Редактировать точку</h3>
@@ -134,13 +148,30 @@ button.submit-btn:hover{background:#1558b0}
 </div>
 </div>
 
+<!-- Route modal (create / edit) -->
+<div id="route-modal" class="modal-overlay" hidden>
+<div class="modal-box">
+<h3 id="route-modal-title">Добавить маршрут</h3>
+<label>Название маршрута</label>
+<input type="text" id="route-name-input" placeholder="Например: Маршрут Альстер — Эльба">
+<label>Координаты (JSON-массив [[lat,lng],...])</label>
+<textarea id="route-coords-input" placeholder='[[53.55,10.00],[53.56,10.01]]'></textarea>
+<div class="route-coords-preview" id="route-coords-hint">Введите минимум 2 точки в формате [[lat,lng],…]</div>
+<div class="modal-actions">
+<button class="modal-cancel" onclick="closeRouteModal()">Отмена</button>
+<button class="modal-save" onclick="saveRouteModal()">Сохранить</button>
+</div>
+</div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SUPABASE_URL = 'https://illdwjdggnopizqoeaun.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsbGR3amRnZ25vcGl6cW9lYXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NjA2NTQsImV4cCI6MjEwNDQzNjY1NH0.-CDmObhoaZDOQVrzvf2jrRz8z2sk6prY-iYaCEKKJ90';
 let sb = null;
 let currentFilter = 'pending';
-let officialPointsCache = [];
+let editingId = null;
+let editingRouteId = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -203,6 +234,7 @@ function setTab(tab, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (tab === 'allpoints') loadAllPoints();
+  if (tab === 'routes') loadRoutes();
 }
 
 function setFilter(filter, btn) {
@@ -281,8 +313,6 @@ async function loadAllPoints() {
   const { data: userPoints, error } = await sb.from('access_points').select('*').order('created_at', { ascending: false });
   if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
 
-  officialPointsCache = officialPoints;
-
   const officialHtml = officialPoints.map(p => renderOfficialCard(p)).join('');
   const userHtml = (userPoints || []).map(p => renderUserPointCard(p)).join('');
 
@@ -325,8 +355,6 @@ function escapeAttr(str) {
   return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-let editingId = null;
-
 function openEditModal(id, name, lat, lng) {
   editingId = id;
   document.getElementById('edit-name-input').value = name;
@@ -359,6 +387,97 @@ async function deleteAccessPoint(id) {
   const { error } = await sb.from('access_points').delete().eq('id', id);
   if (error) { alert('Ошибка: ' + error.message); return; }
   loadAllPoints();
+}
+
+/* ── ROUTES (custom_waterways) CRUD ── */
+
+async function loadRoutes() {
+  const list = document.getElementById('routes-list');
+  list.innerHTML = '<div class="empty">Загрузка...</div>';
+  const { data, error } = await sb.from('custom_waterways').select('*').order('created_at', { ascending: false });
+  if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
+  if (!data || !data.length) { list.innerHTML = '<div class="empty">Маршрутов пока нет</div>'; return; }
+  list.innerHTML = data.map(r => renderRouteCard(r)).join('');
+}
+
+function renderRouteCard(r) {
+  const coords = r.coordinates || [];
+  const pointCount = Array.isArray(coords) ? coords.length : '?';
+  const date = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '';
+  const firstCoord = Array.isArray(coords) && coords.length > 0 ? coords[0] : null;
+  const mapLink = firstCoord
+    ? `<a class="card-meta" href="index.html#${firstCoord[0]},${firstCoord[1]}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">🗺 Открыть на карте</a>`
+    : '';
+  return `<div class="card" id="route-${r.id}">
+    <div class="card-body">
+      <strong>${r.name || 'Без названия'}</strong>
+      <span class="badge badge-route">маршрут</span>
+      <div class="card-meta">📍 Точек: ${pointCount}</div>
+      ${mapLink}
+      <div class="card-meta">🕐 ${date}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="openRouteModal(${JSON.stringify(r).replace(/"/g,'&quot;')})">Ред.</button>
+        <button class="btn-delete" onclick="deleteRoute('${r.id}')">Удал.</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openRouteModal(route) {
+  editingRouteId = route ? route.id : null;
+  document.getElementById('route-modal-title').textContent = route ? 'Редактировать маршрут' : 'Добавить маршрут';
+  document.getElementById('route-name-input').value = route ? (route.name || '') : '';
+  const coords = route && route.coordinates ? route.coordinates : [];
+  document.getElementById('route-coords-input').value = coords.length ? JSON.stringify(coords, null, 2) : '';
+  document.getElementById('route-coords-hint').textContent = 'Введите минимум 2 точки в формате [[lat,lng],…]';
+  document.getElementById('route-modal').hidden = false;
+}
+
+function closeRouteModal() {
+  editingRouteId = null;
+  document.getElementById('route-modal').hidden = true;
+}
+
+async function saveRouteModal() {
+  const name = document.getElementById('route-name-input').value.trim();
+  const rawCoords = document.getElementById('route-coords-input').value.trim();
+  const hintEl = document.getElementById('route-coords-hint');
+
+  if (!name) { alert('Введите название маршрута'); return; }
+
+  let coordinates;
+  try {
+    coordinates = JSON.parse(rawCoords);
+    if (!Array.isArray(coordinates) || coordinates.length < 2) throw new Error('Нужно минимум 2 точки');
+    for (const c of coordinates) {
+      if (!Array.isArray(c) || c.length < 2 || typeof c[0] !== 'number' || typeof c[1] !== 'number') {
+        throw new Error('Каждая точка должна быть [lat, lng]');
+      }
+    }
+    hintEl.textContent = `✓ ${coordinates.length} точек`;
+  } catch (e) {
+    hintEl.textContent = '⚠ ' + e.message;
+    alert('Ошибка в координатах: ' + e.message);
+    return;
+  }
+
+  let error;
+  if (editingRouteId) {
+    ({ error } = await sb.from('custom_waterways').update({ name, coordinates }).eq('id', editingRouteId));
+  } else {
+    ({ error } = await sb.from('custom_waterways').insert([{ name, coordinates }]));
+  }
+
+  if (error) { alert('Ошибка сохранения: ' + error.message); return; }
+  closeRouteModal();
+  loadRoutes();
+}
+
+async function deleteRoute(id) {
+  if (!confirm('Удалить маршрут окончательно?')) return;
+  const { error } = await sb.from('custom_waterways').delete().eq('id', id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  loadRoutes();
 }
 </script>
 </body>
