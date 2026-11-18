@@ -1,6 +1,6 @@
 -- RLS audit for wasserwege. Run MANUALLY in Supabase Dashboard -> SQL Editor.
 -- SQL Editor shows only the LAST statement's result: select ONE block and press "Run selected".
--- All blocks are read-only; the behavioural tests (6-7) run in a transaction that is rolled back.
+-- All blocks are read-only. Blocks 6 uses a transaction that is rolled back.
 
 -- 1. All policies on the app tables
 SELECT tablename, policyname, cmd, roles, permissive, qual AS using_expr, with_check
@@ -39,7 +39,7 @@ WHERE schemaname = 'public'
   AND (roles && ARRAY['anon','public']::name[])
   AND NOT (tablename = 'submitted_points' AND cmd = 'INSERT');
 
--- 6. Behavioural test as anon: SELECT counts.
+-- 6. Behavioural test as anon: SELECT counts (no data is modified).
 -- Expected: submitted_points = 0 (or permission denied), access_points / custom_waterways = real counts.
 BEGIN;
 SET LOCAL ROLE anon;
@@ -48,17 +48,15 @@ UNION ALL SELECT 'access_points', count(*) FROM public.access_points
 UNION ALL SELECT 'custom_waterways', count(*) FROM public.custom_waterways;
 ROLLBACK;
 
--- 7. Behavioural test as anon: DELETE (rolled back anyway).
--- Expected: 0 for every table (or "permission denied"). Any number > 0 = CRITICAL hole.
-BEGIN;
-SET LOCAL ROLE anon;
-WITH a AS (DELETE FROM public.access_points RETURNING 1),
-     b AS (DELETE FROM public.custom_waterways RETURNING 1),
-     c AS (DELETE FROM public.submitted_points RETURNING 1)
-SELECT (SELECT count(*) FROM a) AS access_points_deleted,
-       (SELECT count(*) FROM b) AS custom_waterways_deleted,
-       (SELECT count(*) FROM c) AS submitted_points_deleted;
-ROLLBACK;
+-- 7. Privileges NOT protected by RLS (read-only check, modifies nothing).
+-- Expected: can_truncate = false, can_trigger = false, can_references = false for anon AND authenticated.
+SELECT t.table_name, r.role_name,
+       has_table_privilege(r.role_name, 'public.' || t.table_name, 'TRUNCATE')   AS can_truncate,
+       has_table_privilege(r.role_name, 'public.' || t.table_name, 'TRIGGER')    AS can_trigger,
+       has_table_privilege(r.role_name, 'public.' || t.table_name, 'REFERENCES') AS can_references
+FROM (VALUES ('submitted_points'),('access_points'),('custom_waterways')) AS t(table_name)
+CROSS JOIN (VALUES ('anon'),('authenticated')) AS r(role_name)
+ORDER BY t.table_name, r.role_name;
 
 -- 8. Storage policies (bucket point-photos)
 SELECT policyname, cmd, roles, qual, with_check
