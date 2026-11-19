@@ -244,6 +244,13 @@ function setFilter(filter, btn) {
   loadPoints();
 }
 
+// Photos are in a PRIVATE bucket: only the object path is stored, signed URL is generated on render.
+async function getPhotoUrl(path) {
+  if (!path) return null;
+  const { data, error } = await sb.storage.from('point-photos').createSignedUrl(path, 3600);
+  return error ? null : data.signedUrl;
+}
+
 async function loadPoints() {
   const list = document.getElementById('points-list');
   list.innerHTML = '<div class="empty">Загрузка...</div>';
@@ -252,13 +259,14 @@ async function loadPoints() {
   const { data, error } = await query;
   if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
   if (!data.length) { list.innerHTML = '<div class="empty">Нет заявок</div>'; return; }
-  list.innerHTML = data.map(p => renderCard(p)).join('');
+  const cards = await Promise.all(data.map(async p => renderCard(p, await getPhotoUrl(p.photo_path))));
+  list.innerHTML = cards.join('');
 }
 
-function renderCard(p) {
+function renderCard(p, photoUrl) {
   const badges = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' };
   const labels = { pending:'ожидает', approved:'одобрено', rejected:'отклонено' };
-  const photo = p.photo_url ? `<img class="card-photo" src="${p.photo_url}" alt="фото" onerror="this.style.display='none'">` : '';
+  const photo = photoUrl ? `<img class="card-photo" src="${photoUrl}" alt="фото" onerror="this.style.display='none'">` : '';
   const actions = p.status === 'pending' ? `
     <div class="card-actions">
       <button class="btn-approve" onclick="moderate('${p.id}','approved')">Одобрить</button>
@@ -289,7 +297,7 @@ async function moderate(id, status) {
       name: pointData.name,
       lat: pointData.lat,
       lng: pointData.lng,
-      photo_url: pointData.photo_url
+      photo_path: pointData.photo_path
     }]);
     if (insertError) { alert('Точка одобрена, но не добавлена на карту: ' + insertError.message); }
   }
@@ -314,7 +322,7 @@ async function loadAllPoints() {
   if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
 
   const officialHtml = officialPoints.map(p => renderOfficialCard(p)).join('');
-  const userHtml = (userPoints || []).map(p => renderUserPointCard(p)).join('');
+  const userHtml = (await Promise.all((userPoints || []).map(async p => renderUserPointCard(p, await getPhotoUrl(p.photo_path))))).join('');
 
   if (!officialPoints.length && !(userPoints || []).length) {
     list.innerHTML = '<div class="empty">Нет точек</div>';
@@ -335,8 +343,8 @@ function renderOfficialCard(p) {
   </div>`;
 }
 
-function renderUserPointCard(p) {
-  const photo = p.photo_url ? `<img class="card-photo" src="${p.photo_url}" alt="фото" onerror="this.style.display='none'">` : '';
+function renderUserPointCard(p, photoUrl) {
+  const photo = photoUrl ? `<img class="card-photo" src="${photoUrl}" alt="фото" onerror="this.style.display='none'">` : '';
   return `<div class="card" id="apoint-${p.id}">
     ${photo}
     <div class="card-body">
