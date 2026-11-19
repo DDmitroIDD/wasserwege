@@ -260,23 +260,19 @@ function el(tag, opts = {}, children = []) {
   return n;
 }
 
-function safePhotoUrl(raw) {
-  if (!raw) return null;
-  try {
-    const u = new URL(String(raw));
-    if (u.protocol !== 'https:') return null;
-    if (u.hostname !== SUPABASE_HOST) return null;
-    return u.href;
-  } catch (e) { return null; }
+// Photos are in a PRIVATE bucket: only the object path is stored, signed URL is generated on render.
+async function getPhotoUrl(path) {
+  if (!path) return null;
+  const { data, error } = await sb.storage.from('point-photos').createSignedUrl(path, 3600);
+  return error ? null : data.signedUrl;
 }
 
-function photoEl(raw) {
-  const src = safePhotoUrl(raw);
-  if (!src) return null;
+function photoEl(photoUrl) {
+  if (!photoUrl) return null;
   const img = el('img', { cls: 'card-photo' });
   img.alt = 'фото';
   img.addEventListener('error', () => { img.style.display = 'none'; });
-  img.src = src;
+  img.src = photoUrl;
   return img;
 }
 
@@ -306,10 +302,11 @@ async function loadPoints() {
   const { data, error } = await query;
   if (error) { showMessage(list, 'Ошибка: ' + error.message); return; }
   if (!data.length) { showMessage(list, 'Нет заявок'); return; }
-  renderList(list, data.map(renderCard));
+  const cards = await Promise.all(data.map(async p => renderCard(p, await getPhotoUrl(p.photo_path))));
+  renderList(list, cards);
 }
 
-function renderCard(p) {
+function renderCard(p, photoUrl) {
   const badges = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' };
   const labels = { pending:'ожидает', approved:'одобрено', rejected:'отклонено' };
   const body = el('div', { cls: 'card-body' }, [
@@ -328,7 +325,7 @@ function renderCard(p) {
   }
   const card = el('div', { cls: 'card' });
   card.id = 'card-' + p.id;
-  const img = photoEl(p.photo_url);
+  const img = photoEl(photoUrl);
   if (img) card.append(img);
   card.append(body);
   return card;
@@ -346,7 +343,7 @@ async function moderate(id, status) {
       name: pointData.name,
       lat: pointData.lat,
       lng: pointData.lng,
-      photo_url: pointData.photo_url
+      photo_path: pointData.photo_path
     }]);
     if (insertError) { alert('Точка одобрена, но не добавлена на карту: ' + insertError.message); }
   }
@@ -371,7 +368,7 @@ async function loadAllPoints() {
   if (error) { showMessage(list, 'Ошибка: ' + error.message); return; }
 
   const officialNodes = officialPoints.map(renderOfficialCard);
-  const userNodes = (userPoints || []).map(renderUserPointCard);
+  const userNodes = await Promise.all((userPoints || []).map(async p => renderUserPointCard(p, await getPhotoUrl(p.photo_path))));
 
   if (!officialNodes.length && !userNodes.length) {
     showMessage(list, 'Нет точек');
@@ -394,10 +391,10 @@ function renderOfficialCard(p) {
   ]);
 }
 
-function renderUserPointCard(p) {
+function renderUserPointCard(p, photoUrl) {
   const card = el('div', { cls: 'card' });
   card.id = 'apoint-' + p.id;
-  const img = photoEl(p.photo_url);
+  const img = photoEl(photoUrl);
   if (img) card.append(img);
   card.append(el('div', { cls: 'card-body' }, [
     el('strong', { text: p.name }),
