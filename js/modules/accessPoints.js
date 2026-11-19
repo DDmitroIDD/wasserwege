@@ -166,7 +166,7 @@ async function loadApprovedUserPoints() {
   try {
     const { data, error } = await supabase.from('access_points').select('*');
     if (error) {
-      console.error('Failed to load access points:', error);
+      console.error('Failed to load approved user points:', error);
       return [];
     }
     return data || [];
