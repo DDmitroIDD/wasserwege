@@ -1,6 +1,8 @@
 // Access points module: loads and renders official launch/exit points.
 // User-submitted points go to Supabase for moderator approval.
 // Approved user points are stored in access_points table and shown on the map too.
+// Photos live in the PRIVATE point-photos bucket; only the object path (photo_path) is stored in the DB.
+// The admin panel reads photos via short-lived signed URLs (anon can only INSERT into the bucket).
 // Модуль точек доступа: загружает официальные точки и одобренные пользовательские, заявки идут в Supabase.
 
 import { t } from './i18n.js';
@@ -99,7 +101,7 @@ function openAddPointModal(latlng) {
 }
 
 // Submit a new point to Supabase submitted_points table.
-// Optionally uploads a photo to the point-photos storage bucket.
+// Optionally uploads a photo to the private point-photos bucket and stores only its path (photo_path).
 async function submitPointForModeration(name, lat, lng, photoFile) {
   const supabase = getSupabaseClient();
   if (!supabase) {
@@ -107,7 +109,7 @@ async function submitPointForModeration(name, lat, lng, photoFile) {
     return;
   }
   try {
-    let photoUrl = null;
+    let photoPath = null;
     if (photoFile) {
       const ext = photoFile.name.split('.').pop();
       const fileName = `${Date.now()}.${ext}`;
@@ -117,15 +119,12 @@ async function submitPointForModeration(name, lat, lng, photoFile) {
       if (uploadError) {
         console.error('Photo upload error:', uploadError);
       } else {
-        const { data: urlData } = supabase.storage
-          .from('point-photos')
-          .getPublicUrl(fileName);
-        photoUrl = urlData.publicUrl;
+        photoPath = fileName;
       }
     }
     const { error: insertError } = await supabase
       .from('submitted_points')
-      .insert([{ name, lat, lng, photo_url: photoUrl, status: 'pending' }]);
+      .insert([{ name, lat, lng, photo_path: photoPath, status: 'pending' }]);
     if (insertError) {
       console.error('Insert error:', insertError);
       window.alert(t('submitError'));
@@ -167,7 +166,7 @@ async function loadApprovedUserPoints() {
   try {
     const { data, error } = await supabase.from('access_points').select('*');
     if (error) {
-      console.error('Failed to load approved user points:', error);
+      console.error('Failed to load access points:', error);
       return [];
     }
     return data || [];
