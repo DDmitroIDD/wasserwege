@@ -168,6 +168,7 @@ button.submit-btn:hover{background:#1558b0}
 <script>
 const SUPABASE_URL = 'https://illdwjdggnopizqoeaun.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsbGR3amRnZ25vcGl6cW9lYXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg4NjA2NTQsImV4cCI6MjEwNDQzNjY1NH0.-CDmObhoaZDOQVrzvf2jrRz8z2sk6prY-iYaCEKKJ90';
+const SUPABASE_HOST = new URL(SUPABASE_URL).hostname;
 let sb = null;
 let currentFilter = 'pending';
 let editingId = null;
@@ -244,6 +245,21 @@ function setFilter(filter, btn) {
   loadPoints();
 }
 
+/* ── DOM helpers (no innerHTML with data) ── */
+
+function el(tag, opts = {}, children = []) {
+  const n = document.createElement(tag);
+  if (opts.cls) n.className = opts.cls;
+  if (opts.text !== undefined) n.textContent = opts.text;
+  if (opts.style) n.style.cssText = opts.style;
+  if (opts.href) n.href = opts.href;
+  if (opts.target) n.target = opts.target;
+  if (opts.rel) n.rel = opts.rel;
+  if (opts.onclick) n.addEventListener('click', opts.onclick);
+  children.forEach(c => n.append(c));
+  return n;
+}
+
 // Photos are in a PRIVATE bucket: only the object path is stored, signed URL is generated on render.
 async function getPhotoUrl(path) {
   if (!path) return null;
@@ -251,38 +267,68 @@ async function getPhotoUrl(path) {
   return error ? null : data.signedUrl;
 }
 
+function photoEl(photoUrl) {
+  if (!photoUrl) return null;
+  const img = el('img', { cls: 'card-photo' });
+  img.alt = 'фото';
+  img.addEventListener('error', () => { img.style.display = 'none'; });
+  img.src = photoUrl;
+  return img;
+}
+
+function mapLinkEl(lat, lng, text) {
+  const la = Number(lat), ln = Number(lng);
+  if (!Number.isFinite(la) || !Number.isFinite(ln)) return document.createTextNode('');
+  return el('a', {
+    cls: 'card-meta', href: 'index.html#' + la + ',' + ln, target: '_blank', rel: 'noopener',
+    style: 'color:#1a73e8;text-decoration:underline',
+    text: text !== undefined ? text : '📍 ' + la.toFixed(5) + ', ' + ln.toFixed(5)
+  });
+}
+
+function showMessage(container, text) {
+  container.replaceChildren(el('div', { cls: 'empty', text: text }));
+}
+
+function renderList(container, nodes) {
+  container.replaceChildren(...nodes);
+}
+
 async function loadPoints() {
   const list = document.getElementById('points-list');
-  list.innerHTML = '<div class="empty">Загрузка...</div>';
+  showMessage(list, 'Загрузка...');
   let query = sb.from('submitted_points').select('*').order('created_at', { ascending: false });
   if (currentFilter !== 'all') query = query.eq('status', currentFilter);
   const { data, error } = await query;
-  if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
-  if (!data.length) { list.innerHTML = '<div class="empty">Нет заявок</div>'; return; }
+  if (error) { showMessage(list, 'Ошибка: ' + error.message); return; }
+  if (!data.length) { showMessage(list, 'Нет заявок'); return; }
   const cards = await Promise.all(data.map(async p => renderCard(p, await getPhotoUrl(p.photo_path))));
-  list.innerHTML = cards.join('');
+  renderList(list, cards);
 }
 
 function renderCard(p, photoUrl) {
   const badges = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' };
   const labels = { pending:'ожидает', approved:'одобрено', rejected:'отклонено' };
-  const photo = photoUrl ? `<img class="card-photo" src="${photoUrl}" alt="фото" onerror="this.style.display='none'">` : '';
-  const actions = p.status === 'pending' ? `
-    <div class="card-actions">
-      <button class="btn-approve" onclick="moderate('${p.id}','approved')">Одобрить</button>
-      <button class="btn-reject" onclick="moderate('${p.id}','rejected')">Отклонить</button>
-    </div>` : '';
-  const date = new Date(p.created_at).toLocaleString('ru');
-  return `<div class="card" id="card-${p.id}">
-    ${photo}
-    <div class="card-body">
-      <strong>${p.name}</strong>
-      <span class="badge ${badges[p.status]}">${labels[p.status]}</span>
-      <a class="card-meta" href="index.html#${p.lat},${p.lng}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</a>
-      <div class="card-meta">🕐 ${date}</div>
-      ${actions}
-    </div>
-  </div>`;
+  const body = el('div', { cls: 'card-body' }, [
+    el('strong', { text: p.name }),
+    ' ',
+    el('span', { cls: 'badge ' + (badges[p.status] || ''), text: labels[p.status] || String(p.status) }),
+    ' ',
+    mapLinkEl(p.lat, p.lng),
+    el('div', { cls: 'card-meta', text: '🕐 ' + new Date(p.created_at).toLocaleString('ru') })
+  ]);
+  if (p.status === 'pending') {
+    body.append(el('div', { cls: 'card-actions' }, [
+      el('button', { cls: 'btn-approve', text: 'Одобрить', onclick: () => moderate(p.id, 'approved') }),
+      el('button', { cls: 'btn-reject', text: 'Отклонить', onclick: () => moderate(p.id, 'rejected') })
+    ]));
+  }
+  const card = el('div', { cls: 'card' });
+  card.id = 'card-' + p.id;
+  const img = photoEl(photoUrl);
+  if (img) card.append(img);
+  card.append(body);
+  return card;
 }
 
 async function moderate(id, status) {
@@ -307,7 +353,7 @@ async function moderate(id, status) {
 
 async function loadAllPoints() {
   const list = document.getElementById('all-points-list');
-  list.innerHTML = '<div class="empty">Загрузка...</div>';
+  showMessage(list, 'Загрузка...');
 
   let officialPoints = [];
   try {
@@ -319,48 +365,49 @@ async function loadAllPoints() {
   }
 
   const { data: userPoints, error } = await sb.from('access_points').select('*').order('created_at', { ascending: false });
-  if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
+  if (error) { showMessage(list, 'Ошибка: ' + error.message); return; }
 
-  const officialHtml = officialPoints.map(p => renderOfficialCard(p)).join('');
-  const userHtml = (await Promise.all((userPoints || []).map(async p => renderUserPointCard(p, await getPhotoUrl(p.photo_path))))).join('');
+  const officialNodes = officialPoints.map(renderOfficialCard);
+  const userNodes = await Promise.all((userPoints || []).map(async p => renderUserPointCard(p, await getPhotoUrl(p.photo_path))));
 
-  if (!officialPoints.length && !(userPoints || []).length) {
-    list.innerHTML = '<div class="empty">Нет точек</div>';
+  if (!officialNodes.length && !userNodes.length) {
+    showMessage(list, 'Нет точек');
     return;
   }
 
-  list.innerHTML = userHtml + officialHtml;
+  renderList(list, userNodes.concat(officialNodes));
 }
 
 function renderOfficialCard(p) {
-  return `<div class="card">
-    <div class="card-body">
-      <strong>${p.name}</strong>
-      <span class="badge badge-official">официальная</span>
-      <a class="card-meta" href="index.html#${p.lat},${p.lng}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</a>
-      <div class="card-meta" style="color:#999;font-size:.78rem">только чтение — редактируется в data/access-points.json</div>
-    </div>
-  </div>`;
+  return el('div', { cls: 'card' }, [
+    el('div', { cls: 'card-body' }, [
+      el('strong', { text: p.name }),
+      ' ',
+      el('span', { cls: 'badge badge-official', text: 'официальная' }),
+      ' ',
+      mapLinkEl(p.lat, p.lng),
+      el('div', { cls: 'card-meta', style: 'color:#999;font-size:.78rem', text: 'только чтение — редактируется в data/access-points.json' })
+    ])
+  ]);
 }
 
 function renderUserPointCard(p, photoUrl) {
-  const photo = photoUrl ? `<img class="card-photo" src="${photoUrl}" alt="фото" onerror="this.style.display='none'">` : '';
-  return `<div class="card" id="apoint-${p.id}">
-    ${photo}
-    <div class="card-body">
-      <strong>${p.name}</strong>
-      <span class="badge badge-user">добавлено пользователем</span>
-      <a class="card-meta" href="index.html#${p.lat},${p.lng}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">📍 ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</a>
-      <div class="card-actions">
-        <button class="btn-edit" onclick="openEditModal('${p.id}','${escapeAttr(p.name)}',${p.lat},${p.lng})">Ред.</button>
-        <button class="btn-delete" onclick="deleteAccessPoint('${p.id}')">Удал.</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function escapeAttr(str) {
-  return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const card = el('div', { cls: 'card' });
+  card.id = 'apoint-' + p.id;
+  const img = photoEl(photoUrl);
+  if (img) card.append(img);
+  card.append(el('div', { cls: 'card-body' }, [
+    el('strong', { text: p.name }),
+    ' ',
+    el('span', { cls: 'badge badge-user', text: 'добавлено пользователем' }),
+    ' ',
+    mapLinkEl(p.lat, p.lng),
+    el('div', { cls: 'card-actions' }, [
+      el('button', { cls: 'btn-edit', text: 'Ред.', onclick: () => openEditModal(p.id, p.name, p.lat, p.lng) }),
+      el('button', { cls: 'btn-delete', text: 'Удал.', onclick: () => deleteAccessPoint(p.id) })
+    ])
+  ]));
+  return card;
 }
 
 function openEditModal(id, name, lat, lng) {
@@ -401,34 +448,34 @@ async function deleteAccessPoint(id) {
 
 async function loadRoutes() {
   const list = document.getElementById('routes-list');
-  list.innerHTML = '<div class="empty">Загрузка...</div>';
+  showMessage(list, 'Загрузка...');
   const { data, error } = await sb.from('custom_waterways').select('*').order('created_at', { ascending: false });
-  if (error) { list.innerHTML = '<div class="empty">Ошибка: ' + error.message + '</div>'; return; }
-  if (!data || !data.length) { list.innerHTML = '<div class="empty">Маршрутов пока нет</div>'; return; }
-  list.innerHTML = data.map(r => renderRouteCard(r)).join('');
+  if (error) { showMessage(list, 'Ошибка: ' + error.message); return; }
+  if (!data || !data.length) { showMessage(list, 'Маршрутов пока нет'); return; }
+  renderList(list, data.map(renderRouteCard));
 }
 
 function renderRouteCard(r) {
-  const coords = r.coordinates || [];
-  const pointCount = Array.isArray(coords) ? coords.length : '?';
+  const coords = Array.isArray(r.coordinates) ? r.coordinates : [];
+  const first = coords.length > 0 && Array.isArray(coords[0]) ? coords[0] : null;
   const date = r.created_at ? new Date(r.created_at).toLocaleString('ru') : '';
-  const firstCoord = Array.isArray(coords) && coords.length > 0 ? coords[0] : null;
-  const mapLink = firstCoord
-    ? `<a class="card-meta" href="index.html#${firstCoord[0]},${firstCoord[1]}" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline">🗺 Открыть на карте</a>`
-    : '';
-  return `<div class="card" id="route-${r.id}">
-    <div class="card-body">
-      <strong>${r.name || 'Без названия'}</strong>
-      <span class="badge badge-route">маршрут</span>
-      <div class="card-meta">📍 Точек: ${pointCount}</div>
-      ${mapLink}
-      <div class="card-meta">🕐 ${date}</div>
-      <div class="card-actions">
-        <button class="btn-edit" onclick="openRouteModal(${JSON.stringify(r).replace(/"/g,'&quot;')})">Ред.</button>
-        <button class="btn-delete" onclick="deleteRoute('${r.id}')">Удал.</button>
-      </div>
-    </div>
-  </div>`;
+  const body = el('div', { cls: 'card-body' }, [
+    el('strong', { text: r.name || 'Без названия' }),
+    ' ',
+    el('span', { cls: 'badge badge-route', text: 'маршрут' }),
+    el('div', { cls: 'card-meta', text: '📍 Точек: ' + (Array.isArray(r.coordinates) ? coords.length : '?') })
+  ]);
+  if (first) body.append(mapLinkEl(first[0], first[1], '🗺 Открыть на карте'));
+  body.append(
+    el('div', { cls: 'card-meta', text: '🕐 ' + date }),
+    el('div', { cls: 'card-actions' }, [
+      el('button', { cls: 'btn-edit', text: 'Ред.', onclick: () => openRouteModal(r) }),
+      el('button', { cls: 'btn-delete', text: 'Удал.', onclick: () => deleteRoute(r.id) })
+    ])
+  );
+  const card = el('div', { cls: 'card' }, [body]);
+  card.id = 'route-' + r.id;
+  return card;
 }
 
 function openRouteModal(route) {
